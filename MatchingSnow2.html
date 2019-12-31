@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>自製下雪效果2</title>
+    <style>
+
+/* 下雪效果可用套件，see google:particles.js */
+
+body {
+    font-family: "微軟正黑體";
+    margin: 0;
+    padding: 0;  
+       
+}
+
+.section{
+    background-image: url(./card/bg.jpg);
+    height:650px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: relative;   
+    overflow: hidden;
+    padding: 10px;  }
+
+.snow1 {
+ position: absolute;
+ background: url(./card/snow.png);
+ width: 100%;
+ height: 650px;
+ animation: fallingA 20s infinite linear;
+ z-index: 98; 
+ pointer-events: none;
+}
+
+@keyframes fallingA {
+    0% {background-position: 0px -100px;}
+    100% {background-position: 100px 650px;}
+}
+
+
+.snow2 {
+ position: absolute;
+ background: url(./card/snow.png);
+ width: 100%;
+ height: 650px;
+ animation: fallingB 10s infinite linear;
+ z-index: 99;
+ pointer-events: none;
+
+}
+
+@keyframes fallingB {
+    0% {left: 0; top: -100px;}
+    100% {left: 0; top: 650px;}
+}
+
+
+/* 整個遊戲區game設定     */
+#game {
+    width: 960px;
+    z-index: 90;
+}
+
+.button {
+    width: 150px;
+    height: 40px;
+    background-color: orange;
+    color: white;
+    padding:3px 3px;
+    font-size: 1.3em;
+    font-family: "微軟正黑體";
+
+}
+
+
+.card {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    transform-style: preserve-3d;
+    position: relative;
+    opacity: 0;
+    transition: transform 0.9s;
+    float: left;
+    margin: 10px;
+   
+}
+
+.open {
+    transform: rotateY(180deg);    
+
+}
+
+
+.coverSide {
+    width: 100%;
+    height: 100%;  
+    border-radius: 50%;  
+    background-image: url(./card/mXmasTreeX.jpg);
+    border-radius: 50%;
+    box-shadow: 5px 5px 8px rgba(0, 0, 0, 0.7);
+    
+    /* filter:opacity(0.2);  */
+
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: absolute;
+
+}
+
+
+
+.picSide {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;  
+    background-position: center;
+    background-size: contain;
+    background-repeat: no-repeat;
+    position: absolute;
+    transform: rotateY(180deg);
+    opacity: 0;
+}
+
+    
+</style>
+</head>
+
+<!-- ______________________________________________ -->
+<body>
+<div class="section"> 
+
+    <div class="snow1">    </div>    
+    <div class="snow2">    </div>
+
+    <h1>MatchingX'mas</h1>
+    <div>
+        <p><input class="button" 
+                  type="button" 
+                  value="遊戲開始" 
+                  id="startBtn"></p>
+        <p>配對成功：<span id="score">0 </span>對</p>
+        <p>倒數計時：<span id="sec">0 </span>秒</p>  
+       
+    </div>
+    
+
+    <div id="game">
+    </div>      
+</div>  
+ 
+
+<!-- ______________________________________________ -->
+<script src="jquery-3.4.1.min.js"></script>
+<script>
+
+
+$(function() { 
+
+    let inGame= false;
+
+    for(let i=0; i<16; i++) {
+        $("#game").append(
+                    /*html*/
+                    `<div class="card">
+                          <div class="coverSide"></div>
+                          <div class="picSide"></div> 
+                    </div>`
+        )
+    }
+
+let score= 0;
+let sec= 5;
+let gameTimer= 0;
+
+$("#startBtn").on("click", function(){
+
+    $(".card").css("opacity",0).removeClass("clear");
+    $(".picSide").css("opacity",0);
+    score= 0;
+    sec= 0;
+
+    for(let i=0; i<$(".card").length; i++) {   
+        
+        setTimeout( ()=> {
+            $(".card").eq(i).fadeTo(100, 1, function(){
+            $(".card").eq(i).find(".picSide").css("opacity",1)
+            }) 
+        }, i*100)
+ 
+
+        let add = i % ( $(".card").length / 2) +1;
+        $(".card").eq(i).find(".picSide").css("background-image", `url(./card/${add}X.jpg)`);
+        $(".card").eq(i).attr("data-card", add);
+
+
+        let target = Math.floor(Math.random()*$(".card").length);
+        $(".card").eq(target).insertAfter( $(".card").eq(i));
+
+    }
+
+        inGame= true;
+
+        sec= 5;
+        $("#sec").text(sec);
+        score= 0;
+        $("#score").text(score);
+    
+        gameTimer= setInterval( ()=> {
+            sec--;
+            $("#sec").text(sec);
+        
+            if(sec==0) {
+                clearInterval(gameTimer);
+                $(this).attr("disabled", false);
+            
+                setTimeout ( ()=> {
+                    alert ("時間到!");
+                    $("#startBtn").val("再玩一次");
+
+                }, 200)
+            }
+        }, 5000)
+    })
+
+
+
+
+    $(".card").on("click", function () {
+
+        if(!inGame){
+            return;
+
+        }
+        if ($(".open").length< 2 && !$(this).hasClass("open")) {
+            $(this).addClass("open");
+        }
+
+
+
+
+        if ($(".open").length ==2 ) {            
+            
+            setTimeout(()=>{
+                $(".open").removeClass("open");
+            }, 1000) 
+        
+                    if($(".open").eq(0).attr("data-card") == $(".open").eq(1).attr("data-card")  ) {
+                    $(".open").fadeTo(1000,0).addClass("clear");                   
+                   
+                    score++;
+                    $("#score").text(score);
+                    }
+        }
+   
+
+        if( $(".clear").length == $(".card").length) {
+            setTimeout( ()=> {
+                $("#startBtn").val("再玩一次");
+                alert("你好棒，恭喜過關");
+            }, 500);
+        }           
+
+    }) 
+
+})
+
+</script>
+</body>
+</html>
